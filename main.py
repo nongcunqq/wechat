@@ -15,6 +15,8 @@ desired_caps = {
     'deviceName': 'Hisense_A2',
     "appPackage": "com.tencent.mm",
     "appActivity": ".ui.LauncherUI",
+   'unicodeKeyboard': True,
+    'resetKeyboard': True,
 }
 
 desired_caps['chromeOptions'] = {'androidProcess': 'com.tencent.mm:tools'}
@@ -28,7 +30,7 @@ el1 = driver.find_element_by_xpath("//android.widget.TextView[@text='通讯录']
 time.sleep(3)
 driver.find_element_by_xpath("//android.widget.TextView[@text='公众号']").click()
 time.sleep(2)
-driver.find_element_by_xpath("//android.widget.TextView[@text='BetterRead']").click()
+driver.find_element_by_xpath("//android.widget.TextView[@text='BOOX专注阅读']").click()
 time.sleep(2)
 driver.find_element_by_xpath('//android.widget.ImageButton[@content-desc="聊天信息"]').click()
 time.sleep(2)
@@ -45,18 +47,20 @@ driver.find_element_by_xpath("//android.widget.TextView[@text='全部消息']").
 # 获取当前上下文
 c = driver.contexts
 print(c)
+
 # 输出结果['NATIVE_APP', 'WEBVIEW_com.tencent.mm:tools']
 time.sleep(1)
 # 切换为 webview，名称就是从上面的语句得来的
 # driver._switch_to.context('WEBVIEW_com.tencent.mm:appbrand0')
 time.sleep(1)
-driver._switch_to.context('WEBVIEW_com.tencent.mm:tools')
+driver._switch_to.context('WEBVIEW_com.tencent.mm:appbrand0')
 
 time.sleep(1)
 
 handles = driver.window_handles
+print(handles)
 driver.switch_to_window(handles[1])
-time.sleep(2)
+time.sleep(5)
 
 
 while True:
@@ -75,7 +79,7 @@ while True:
         print(i)
 
     time.sleep(2)
-    driver._switch_to.context('WEBVIEW_com.tencent.mm:tools')
+    driver._switch_to.context('WEBVIEW_com.tencent.mm:appbrand0')
     time.sleep(3)
     wbdata2 = driver.page_source
     print('滑动后————————' + str(len(wbdata2)))
@@ -99,7 +103,10 @@ while True:
                 '链接': link
             }
             print(data)
-            break
+        break
+
+print('crawl success')
+
 
 
 
