@@ -1,0 +1,46 @@
+from appium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+from bs4 import BeautifulSoup
+import re
+
+server = 'http://localhost:4723/wd/hub'
+
+desired_caps = {
+    'platformName': 'Android',
+    'deviceName': 'Hisense_A2',
+    "appPackage": "com.tencent.mm",
+    "appActivity": ".ui.LauncherUI",
+   'unicodeKeyboard': True,
+    'resetKeyboard': True,
+}
+
+desired_caps['chromeOptions'] = {'androidProcess': 'com.tencent.mm:tools'}
+desired_caps['noReset'] = True
+
+driver = webdriver.Remote(server, desired_caps)
+
+time.sleep(5)
+
+#driver.find_element_by_xpath("xpath	//android.widget.TextView[@content-desc=’搜索’]").click()
+el1 = driver.find_element_by_accessibility_id("搜索")
+el1.click()
+
+time.sleep(2)
+el3 = driver.find_element_by_id("com.tencent.mm:id/hz")
+el3.clear()
+el3.click()
+el3.send_keys("后沙")
+time.sleep(1)
+driver.find_element_by_xpath("//android.widget.TextView[@text='后沙']").click()
+
+
+# time.sleep(3)
+# driver.find_element_by_xpath("//android.widget.TextView[@text='公众号']").click()
+# time.sleep(2)
+# driver.find_element_by_xpath("//android.widget.TextView[@text='BOOX专注阅读']").click()
+time.sleep(2)
+driver.find_element_by_xpath('//android.widget.ImageButton[@content-desc="聊天信息"]').click()
+time.sleep(2)
