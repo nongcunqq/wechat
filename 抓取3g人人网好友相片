@@ -1,0 +1,155 @@
+
+# coding:utf-8
+import requests
+from bs4 import BeautifulSoup
+import re
+from lxml import etree
+from urllib.parse import quote
+from scrapy_splash import SplashRequest
+from scrapy import Spider
+cookie = 'anonymid=jj5mk5dl3lbl2n; depovince=GW; _r01_=1; ln_uact=; ln_hurl=http://hd41.xiaonei.com/photos/hd41/20080310/06/13/main_72p169.jpg; _ga=GA1.2.478708080.1530620020; alxn=af9ac21d994fd998fd5718b9f8d8026bb5d80914c017cacf; OUTFOX_SEARCH_USER_ID_NCOO=1213627517.6891603; ick_login=663c2ed6-0596-4442-a3a1-4322f3b44985; jebecookies=09b94f18-b62d-4d36-883d-a7ae40ca9d65|||||; _de=CAE1E3B25570BDDB530F97F46C27D779696BF75400CE19CC; p=b90c471d1fa0ba49c8fd97b9c0fcd0a47; first_login_flag=1; t=040d9b3858597eba4f607d507545d46d7; societyguester=040d9b3858597eba4f607d507545d46d7; id=233640987; xnsid=9cb5e028; loginfrom=syshome; Hm_lvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530665887,1530665940,1530666068,1530679857; mt=TxSS7wzB-OF8Rrb934Tmat; Hm_lpvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530693063'
+
+header = {
+        # 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        #  'Accept-Encoding': 'gzip, deflate',
+        #  'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        #  'Cache-Control': 'max-age=0',
+        #  'Connection': 'keep-alive',
+         'Cookie': cookie,
+         # 'Host': '3g.renren.com',
+         # 'Upgrade-Insecure-Requests': '1',
+         # 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
+
+}
+
+
+# 获取好友页面总页数
+# url = 'http://3g.renren.com/friendlist.do?'
+# wbdata = requests.get(url, headers=header).text
+# soup = BeautifulSoup(wbdata, 'lxml')
+# content = soup.select('body > div.list > div.l > span')
+# content = str(content)
+# result = re.search('\/(\d+)',content)
+# result2 = re.search('(\d+)',result.group())
+# #print(result2.group())
+
+
+# 获取特定好友相册页面数，获取相册名和链接
+url = 'http://3g.renren.com/album/wmyalbum.do?id=221647344'
+wbdata = requests.get(url, headers=header).text
+soup = BeautifulSoup(wbdata, 'lxml')
+content = soup.select('body > div.list > div:nth-of-type(7) > span')
+ablum = soup.select('tr > td:nth-of-type(2) > a') #相册名和链接
+content = str(content)
+# result = re.search('\/(\d+)',content)
+# result2 = re.search('(\d+)',result.group())
+# max_page = int(result2.group())
+
+
+
+
+
+
+#相册翻页
+
+# for i in range(0,max_page):
+#     ablum_url = 'http://3g.renren.com/album/wmyalbum.do?curpage=' + str(i) + '&id=221647344'
+#
+#     wbdata = requests.get(ablum_url, headers=header).text
+#     soup = BeautifulSoup(wbdata, 'lxml')
+#     ablum = soup.select('tr > td:nth-of-type(2) > a')
+#
+#     # 获取单页相册名、链接
+#     for n in ablum:
+#         if n.get_text() == '找人':
+#             continue
+#         name = n.get_text()
+#         link = n.get("href")
+#         data = {
+#             '相册名': name,
+#             '链接': link
+#         }
+#
+#         #print(data)
+
+
+script = """
+function main(splash, args)
+  
+  splash:set_custom_headers{
+    ["Cookie"] = "anonymid=jj5mk5dl3lbl2n; depovince=GW; _r01_=1; ln_uact=411201060@qq.com; ln_hurl=http://hd41.xiaonei.com/photos/hd41/20080310/06/13/main_72p169.jpg; _ga=GA1.2.478708080.1530620020; alxn=af9ac21d994fd998fd5718b9f8d8026bb5d80914c017cacf; OUTFOX_SEARCH_USER_ID_NCOO=1213627517.6891603; ick_login=663c2ed6-0596-4442-a3a1-4322f3b44985; jebecookies=09b94f18-b62d-4d36-883d-a7ae40ca9d65|||||; _de=CAE1E3B25570BDDB530F97F46C27D779696BF75400CE19CC; p=b90c471d1fa0ba49c8fd97b9c0fcd0a47; first_login_flag=1; t=040d9b3858597eba4f607d507545d46d7; societyguester=040d9b3858597eba4f607d507545d46d7; id=233640987; xnsid=9cb5e028; loginfrom=syshome; Hm_lvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530665887,1530665940,1530666068,1530679857; mt=TxSS7wzB-OF8Rrb934Tmat; Hm_lpvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530693063"
+  }
+  assert(splash:go(args.url))
+  assert(splash:wait(args.wait))
+  return splash:html()
+end
+"""
+
+
+j = {'Cookie':'anonymid=jj5mk5dl3lbl2n; depovince=GW; _r01_=1; ln_uact=411201060@qq.com; ln_hurl=http://hd41.xiaonei.com/photos/hd41/20080310/06/13/main_72p169.jpg; _ga=GA1.2.478708080.1530620020; alxn=af9ac21d994fd998fd5718b9f8d8026bb5d80914c017cacf; OUTFOX_SEARCH_USER_ID_NCOO=1213627517.6891603; ick_login=663c2ed6-0596-4442-a3a1-4322f3b44985; jebecookies=09b94f18-b62d-4d36-883d-a7ae40ca9d65|||||; _de=CAE1E3B25570BDDB530F97F46C27D779696BF75400CE19CC; p=b90c471d1fa0ba49c8fd97b9c0fcd0a47; first_login_flag=1; t=040d9b3858597eba4f607d507545d46d7; societyguester=040d9b3858597eba4f607d507545d46d7; id=233640987; xnsid=9cb5e028; loginfrom=syshome; Hm_lvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530665887,1530665940,1530666068,1530679857; mt=TxSS7wzB-OF8Rrb934Tmat; Hm_lpvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530693063'
+}
+
+
+
+# 获取单个相册总页数
+single_ablum_url = 'http://3g.renren.com/album/wgetalbum.do?id=982487543&owner=221647344'
+wbdata = requests.get('http://localhost:8050/render.html?url=http://3g.renren.com/album/wgetalbum.do?id=982487543&owner=221647344&timeout=30&wait=3&headers={}'.format(j), headers=header).text
+soup = BeautifulSoup(wbdata, 'lxml')
+content = soup.select('table.p')
+r = soup.find_all('tbody')
+
+print(soup)
+
+
+
+
+id = '曹'
+if id in str(soup):
+    print('ok')
+else:
+    print('not in html source')
+
+
+
+
+
+
+
+
+
+
+
+
+
+def findfrd():
+    wbdata = requests.get(url, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    title = soup.select(' tr > td:nth-of-type(2) > a:nth-of-type(1)')
+    for n in title:
+        if n.get_text() == '找人':
+            continue
+        name = n.get_text()
+        link = n.get("href")
+        data = {
+            '姓名': name,
+            '链接': link
+        }
+
+        print(data)
+
+# for n in range(0,51):
+#
+#     url = 'http://3g.renren.com/friendlist.do?curpage=' + str(n)
+#     findfrd()
+#
+
+
+
+
+
+
+
+
+
+
+
