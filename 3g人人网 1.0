@@ -1,0 +1,334 @@
+#!/usr/bin/env python
+
+import requests
+from bs4 import BeautifulSoup
+import re
+import os
+import time
+from multiprocessing.pool import Pool
+
+cookie = 'anonymid=jj5mk5dl3lbl2n; _r01_=1; ln_uact=411201060@qq.com; ln_hurl=http://hd41.xiaonei.com/photos/hd41/20080310/06/13/main_72p169.jpg; _ga=GA1.2.478708080.1530620020; alxn=af9ac21d994fd998fd5718b9f8d8026bb5d80914c017cacf; OUTFOX_SEARCH_USER_ID_NCOO=1213627517.6891603; _de=CAE1E3B25570BDDB530F97F46C27D779696BF75400CE19CC; _gid=GA1.2.1329517743.1531055547; Hm_lvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1530961106,1531045980,1531117926,1531274304; mt=nJyrzTOfg2YejOvvDk1Gtt; Hm_lpvt_b8b44b4eca2b46873f8be9a9f1d5e8ae=1531274317'
+enter_url = 'http://3g.renren.com/album/wgetalbum.do?id=646190116&owner=108414485&ret=profile.do%3Fid%3D108414485-n-%E5%B4%94%E5%86%A0%E6%B5%B7%E7%9A%84%E4%B8%AA%E4%BA%BA%E4%B8%BB%E9%A1%B5-n-0-u-album%2Fwmyalbum.do%3Fid%3D108414485%26htf%3D38-n-%E5%B4%94%E5%86%A0%E6%B5%B7%E7%9A%84%E7%9B%B8%E5%86%8C-n-0&sid=nJyrzTOfg2YejOvvDk1Gtt&v87595'
+total_ablum_url = 'http://3g.renren.com/album/wmyalbum.do?id=108414485'
+enter_frd_url = 'http://3g.renren.com/friendlist.do?&sid=nJyrzTOfg2YejOvvDk1Gtt&jtpm2x&htf=3'
+
+# 3g人人网header
+header = {
+        'Cookie': cookie,
+         }
+
+# 图片保存站点header
+header2 = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+           'Accept-Encoding': 'gzip, deflate',
+           'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+           'Cache-Control': 'max-age=0', 'Connection': 'keep-alive',
+           # 'Host': 'fmn.rrfmn.com',
+           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
+
+header3 = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8', 'Accept-Encoding': 'gzip, deflate', 'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8', 'Cache-Control': 'max-age=0', 'Connection': 'keep-alive', 'Host': 'fm531.img.xiaonei.com', 'If-Modified-Since': 'Wed, 18 Jun 2020 10:33:53 GMT', 'If-None-Match': '"4858e491-1da0d"', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'}
+
+# splash所需的script
+script = """
+splash.images_enabled = true
+splash:set_custom_headers{
+    ["Cookie"] = (args.cookie)
+    }
+splash:go(args.url)
+splash:wait(1.5)
+return splash:html()
+"""
+# 获取好友page总数，构造每个page的url,返回由所有page的url组成的列表
+
+def get_page_ablum_url_list(enter_frd_url):
+    wbdata = requests.get(enter_frd_url, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    frd_max_page = soup.select('div.l > span.gray')
+    print(frd_max_page)
+    frd_max_page = str(frd_max_page)
+    result = re.search('\/(\d+)', frd_max_page)
+    result2 = re.search('(\d+)', result.group())
+    frd_max_page = result2.group()
+    page_ablum_url_list = []
+    for i in range(0,int(frd_max_page)):
+        n = 'http://3g.renren.com/friendlist.do?curpage=' + str(i)
+        page_ablum_url_list.append(n)
+    return page_ablum_url_list
+
+
+#获取单个page内好友id,拼接成各自的相册访问url，然后以列表的形式返回
+
+def get_ablum_url_list(each_frd_page):
+    wbdata = requests.get(each_frd_page, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    frd_id = soup.select('tr > td:nth-of-type(2) > a:nth-of-type(1)')
+    frd_id = frd_id[1:]
+    frd_ablum_url = []
+    for i in frd_id:
+        single_frd_id = re.search('id\=(\d+)', i.get("href")).group(1)
+        total_ablum_url = 'http://3g.renren.com/album/wmyalbum.do?id=' + single_frd_id
+        frd_ablum_url.append(total_ablum_url)
+
+    return frd_ablum_url
+
+
+
+
+# 获取相册page总页数、ablum_max_page、owner，返回相册page的url组成的列表和相关参数
+def get_all_ablum_page(total_ablum_url):
+    wbdata = requests.get(total_ablum_url, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    max_page_content = soup.select('div.list > div > span.gray')
+    max_page_content = str(max_page_content[1])
+    result = re.search('\/(\d+)', max_page_content)
+    result2 = re.search('(\d+)', result.group())
+    ablum_max_page = result2.group()
+    ablum_max_page = int(ablum_max_page)
+    owner = re.search('id\=(\d+)', total_ablum_url).group(1)  # 获取owner数值
+
+    all_ablum_page_url = []
+    for i in range(0,ablum_max_page):
+        s = 'http://3g.renren.com/album/wmyalbum.do?curpage=' + str(i) + '&id=' + owner
+        all_ablum_page_url.append(s)
+    return all_ablum_page_url
+
+
+
+# 获取单个page内，全部相册url,返回列表
+def get_all_ablum_per_page(total_ablum_url):
+    wbdata = requests.get(total_ablum_url, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    content = soup.select('tr > td:nth-of-type(2) > a')
+
+    single_ablum_url = []
+    for i in content[1:]:
+        s = i.get('href')
+        single_ablum_url.append(s)
+
+    return single_ablum_url
+
+
+
+
+
+
+def get_args(enter_url):
+    # 请求相册初始页，获取好友名字、相册名、相册页数、owner_id、ablum_id
+    # 获取每个相册分页url，返回所有相册分页url列表和其他必要参数
+    wbdata = requests.get(enter_url, headers=header).text
+    time.sleep(1)
+    soup = BeautifulSoup(wbdata, 'lxml')
+    print(enter_url)
+    content = soup.select('div.sec > span.gray ')
+    print(content)
+
+
+    # 相片总张数
+    total_pic = content[0].get_text()
+    total_pic_re = re.search('(\d+)',total_pic)
+    total_pic = int(total_pic_re.group())
+
+    owner = re.search('owner\=(\d+)', enter_url).group(1)  # 获取owner数值
+    ablum_id = re.search('id\=(\d+)', enter_url).group(1)  # 获取相册id
+
+
+    if total_pic > 4:
+        # 用正则表达式获取相册总页数
+        max_page = str(content[1].get_text())
+        result = re.search('\/(\d+)', max_page)
+        result2 = re.search('(\d+)', result.group())
+        max_page = int(result2.group())  # 相册总页数
+    else:
+        max_page = 1
+    ablum_page_url = []
+
+    for i in range(0,max_page):
+        s = 'http://3g.renren.com/album/wgetalbum.do?curpage=' + str(i) +'&id='+ ablum_id +'&owner=' + owner
+        ablum_page_url.append(s)
+
+    return (  max_page,  ablum_id, ablum_page_url)
+
+
+
+
+
+
+
+# 获取单个好友所有相册url，以列表形式返回
+
+def get_single_frd_all_ablum_url_list(enter_url):
+    wbdata = requests.get(enter_url, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    ablum_num = soup.select('div.list > div.t > span')
+    ablum_num = re.search('(\d+)',str(ablum_num))
+    ablum_num=ablum_num.group()
+    id = re.search('(\d+)$',enter_url)
+    id = id.group()
+    if int(ablum_num) < 6:
+        max_page = 1
+    else:
+        max_page = int(ablum_num) // 5 + 1
+    single_frd_all_ablum_url_list = []
+    for i in range(0,max_page):
+        s = 'http://3g.renren.com/album/wmyalbum.do?curpage=' + str(i) + '&id=' + id
+        single_frd_all_ablum_url_list.append(s)
+    return single_frd_all_ablum_url_list
+
+
+
+
+
+
+
+
+
+# splash渲染js获取单个图片地址,返回的值是列表形式
+
+def get_img_url(ablum_page_url):
+
+    resp = requests.post('http://localhost:8050/run', json={
+        'lua_source': script,
+        'url': ablum_page_url,
+        'cookie':cookie
+    })
+    png_data = resp.text
+    soup = BeautifulSoup(png_data,'lxml')
+    img_url = soup.select('tbody > tr > td > a')
+    img_url = img_url[2:] #跳过前两个非所需元素，获取相册列表
+    img_url_list = []
+    for n in img_url:
+        s = n.get("href")
+        img_url_list.append(s)
+    return (img_url_list) #返回四个一组的单个图片url列表
+
+
+
+
+
+def save_image(single_image_url):
+
+    wbdata = requests.get(single_image_url, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    name = soup.select('div.ssec > b > a')
+    name = name[0].get_text()
+    # content来自save_url的返回值content
+    image_url = soup.find("a", text='下载')
+
+    image_url = image_url.get("href")
+    print(image_url)
+
+    pic_name = image_url
+    pic_name_re = re.search('(\w+)\.(\w+)$', pic_name)
+    pic_name = pic_name_re.group()
+
+    s = soup.find("a", text='进入该相册»')
+    s = s.get("href")
+    wbdata = requests.get(s, headers=header).text
+    soup = BeautifulSoup(wbdata, 'lxml')
+    s = soup.select('div.sec > b')
+    s = s[1].get_text()
+    ablum_name = s
+    print(s)
+
+
+
+
+
+    try:
+        if not os.path.exists(name + '/' + ablum_name):
+            # os.mkdir(people_name + '/' + ablum_name)
+            os.makedirs(name + '/' + ablum_name)
+    except:
+        print("路径有问题")
+
+
+
+
+
+    try:
+        response = requests.get(image_url, headers=header2)
+        print(image_url)
+        print(response.status_code)
+        if response.status_code == 200:
+            file_path = '{0}/{1}'.format(name + '/' + ablum_name,pic_name)
+            print(file_path)
+            if not os.path.exists(file_path):
+                with open(file_path, 'wb') as f:
+                    f.write(response.content)
+                    print(file_path)
+            else:
+                print('Already Downloaded',file_path)
+    except requests.ConnectionError :
+        print('Failed to save image')
+
+
+
+
+
+# for i in range(0,ablum_max_page):
+#     single_ablum_url = 'http://3g.renren.com/album/wmyalbum.do?curpage=' + str(i) + '&id=' + owner
+#     page_ablum = get_all_ablum(single_ablum_url)
+#     for i in page_ablum:
+#         enter_url = i.get("href")
+#         name, ablum_name, max_page, owner, ablum_id = get_args(enter_url)
+#         for i in range(0, max_page):
+#             i = str(i)
+#             ablum_page_url = 'http://3g.renren.com/album/wgetalbum.do?curpage=' + i + '&id=' + ablum_id + '&owner=' + owner
+#             print(ablum_page_url)
+#
+#             s = get_img_url(ablum_page_url)
+#             for n in s:
+#                 single_image_url = n.get("href")
+#                 save_image(single_image_url)
+# #
+# s = get_page_ablum_url_list(enter_frd_url)
+# for i in s:
+#     n = get_ablum_url_list(i)
+#     for i in n:
+#         s = get_single_frd_all_ablum_url_list(i)
+#         for i in s:
+#             m = get_all_ablum_per_page(i)
+#             for i in m:
+#                 name, ablum_name, max_page, ablum_id, ablum_page_url = get_args(i)
+#                 for i in ablum_page_url:
+#                     p = get_img_url(i)
+#                     for i in p:
+#                         save_image(i)
+
+def main(i):
+    n = get_ablum_url_list(i)
+    for i in n:
+        s = get_single_frd_all_ablum_url_list(i)
+        for i in s:
+            m = get_all_ablum_per_page(i)
+            for i in m:
+                max_page, ablum_id, ablum_page_url = get_args(i)
+                print(ablum_page_url)
+                for i in ablum_page_url:
+                    p = get_img_url(i)
+                    for i in p:
+                        save_image(i)
+
+
+s = get_page_ablum_url_list(enter_frd_url)
+for i in s[-1:]:
+    main(i)
+
+
+
+# url = 'http://3g.renren.com/album/wgetalbum.do?id=229213298&owner=223730278&ret=profile.do%3Fid%3D223730278-n-%E5%88%9D%E9%9D%99%E7%9A%84%E4%B8%AA%E4%BA%BA%E4%B8%BB%E9%A1%B5-n-0-u-album%2Fwmyalbum.do%3Fid%3D223730278%26htf%3D38-n-%E5%88%9D%E9%9D%99%E7%9A%84%E7%9B%B8%E5%86%8C-n-0&sid=nJyrzTOfg2YejOvvDk1Gtt&baib4x'
+# s = get_args(url)
+# print(s)
+
+# if __name__ == '__main__':
+#     pool = Pool(processes=20)
+#     group = ([i for i in s])
+#     print(group)
+#     pool.map_async(main,group)
+#     pool.close()
+#     pool.join()
+
+
+
+
+
+
