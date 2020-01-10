@@ -18,9 +18,11 @@
 
 测试一下链接引用，内事不决问[百度][baidu]
 
+![Google](https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png)
+
 [baidu]: http://baidu.com	"百度"
 
-
+![Google](assets/googlelogo_color_272x92dp.png)
 
 ```
 第一项
