@@ -18,13 +18,13 @@
 
 测试一下链接引用，内事不决问[百度][baidu]
 
-![Google](https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png)
+
 
 [baidu]: http://baidu.com	"百度"
 <img width='400' src='assets/googlelogo_color_272x92dp.png'/>
 
 
-![Google](assets/googlelogo_color_272x92dp.png)
+
 
 ```
 第一项
@@ -36,3 +36,4 @@
 
 ![small_1](assets/small_1-8636737.jpg)
 ![detail](assets/detail_1.jpg)
+
