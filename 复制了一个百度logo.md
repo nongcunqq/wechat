@@ -35,5 +35,6 @@
 ##### 测试提交
 
 ![small_1](assets/small_1-8636737.jpg)
+
 <img width='300' src='assets/detail_1.jpg'>
 
