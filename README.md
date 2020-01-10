@@ -63,7 +63,54 @@ appium方式爬取微信公众账号文章
 
 
 
-<a href="https://www.jianshu.com/u/1f5ac0cf6a8b" target="_blank">简书</a>
+#### 列表
+
+- 无序列表, 用 - + * 任意一种, 用 - 不用按 shift
+
+##### 有序列表
+
+1. 第一条
+2. 第二条
+
+> 使用方法, 数字 + 点 + 空格
+
+2. 第三条
+3. 第四条
+
+> 退出方式, 快速按两次 enter
+
+##### 列表嵌套
+
+###### 上一级和下一级之间敲三个空格
+
+- 一级无序列表内容
+  - 二级无序列表
+    - 三级
+- 回到一级 command + [
+
+###### 有序列表嵌套
+
+1. 有序列表第一级
+   1. 有序列表第二级
+      1. 第三级
+
+回到正文
+
+`from bs4 import Beautifulsoup`
+
+<!--从 bs4 模块导入 Beautifulsoup 类-->
+
+<!--注释开始, typora 快捷键 control + 减号,不用按shift-->
+
+注释
+
+
+
+
+
+<a href="https://www.jianshu.com/u/1f5ac0cf6a8b" target="_blank">
+
+简书</a>
 
 <img width='600px' src='https://www.baidu.com/img/bd_logo1.png'/>
 
