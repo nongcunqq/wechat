@@ -12,6 +12,13 @@
 
 [a link](https://www.jianshu.com/p/ab539e9a7955)
 
+<https://www.jianshu.com/p/ab539e9a7955>
+
+
+
+测试一下链接引用，内事不决问[百度][baidu]
+
+[baidu]: http://baidu.com	"百度"
 
 
 
