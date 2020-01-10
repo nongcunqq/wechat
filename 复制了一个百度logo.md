@@ -17,4 +17,4 @@
 第三项
 ```
 
-![big_1](/Users/a1/Desktop/we_chat/assets/detail_4.jpg)
+![big_1](.assets/detail_4.jpg)
