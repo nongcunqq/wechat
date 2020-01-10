@@ -34,6 +34,6 @@
 
 ##### 测试提交
 
-![small_1](assets/small_1-8636737.jpg)
-![detail](assets/detail_1.jpg)
+![small_1](assets/small_1-8636737.jpg){:height='20%' width="30"}
+<img width='300' src='assets/detail_1.jpg' alt='辅食——果泥'>
 
